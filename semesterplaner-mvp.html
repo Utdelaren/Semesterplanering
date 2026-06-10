@@ -143,6 +143,7 @@
     select,
     textarea {
       width: 100%;
+      min-width: 0;
       border: 1px solid var(--line);
       border-radius: 6px;
       padding: 10px;
@@ -296,7 +297,7 @@
 
     .calendar-head {
       display: grid;
-      grid-template-columns: repeat(7, minmax(110px, 1fr));
+      grid-template-columns: 36px repeat(7, minmax(110px, 1fr));
       border-bottom: 1px solid var(--line);
       background: #f8faf9;
     }
@@ -311,7 +312,33 @@
 
     .calendar {
       display: grid;
-      grid-template-columns: repeat(7, minmax(110px, 1fr));
+      grid-template-columns: 36px repeat(7, minmax(110px, 1fr));
+    }
+
+    .week-number {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: #f8faf9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+      padding: 4px 0;
+    }
+
+    .holiday-label {
+      font-size: 10px;
+      font-weight: 750;
+      color: var(--red);
+      line-height: 1.2;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .day {
@@ -325,7 +352,7 @@
       background: #fff;
     }
 
-    .day:nth-child(7n) {
+    .day:nth-child(8n) {
       border-right: 0;
     }
 
@@ -333,6 +360,9 @@
       background: #f7f8f7;
       color: #9aa39f;
     }
+
+    .day.status-bad  { background: #fff0f0; }
+    .day.status-warn { background: #fffbeb; }
 
     .day.today {
       outline: 2px solid var(--blue);
@@ -380,13 +410,20 @@
     }
 
     .shift-pill {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 6px;
       border-radius: 6px;
       background: var(--soft);
-      padding: 6px;
+      padding: 5px 6px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .shift-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
       min-width: 0;
     }
 
@@ -409,8 +446,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      flex: 1;
     }
 
+    .text-center { text-align: center; }
+    .group-header-row td {
+      background: #f0f4f2; font-weight: 800; font-size: 12px;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 6px 10px; border-top: 2px solid var(--line);
+    }
     .mini-button {
       width: 28px;
       height: 28px;
@@ -502,10 +546,15 @@
       font-weight: 750;
     }
 
-    .absence-chip {
-      background: var(--red-soft);
-      color: var(--red);
-    }
+    .absence-chip { background: var(--red-soft); color: var(--red); }
+    .type-sem      { background: #d1fae5 !important; color: #065f46 !important; }
+    .type-foraldra { background: #ede9fe !important; color: #5b21b6 !important; }
+    .type-vab      { background: #ffedd5 !important; color: #9a3412 !important; }
+    .type-sjuk     { background: #fee2e2 !important; color: #991b1b !important; }
+    .type-utb      { background: #dbeafe !important; color: #1e40af !important; }
+    .type-ovrigt   { background: #f3f4f6 !important; color: #374151 !important; }
+    .abs-row { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 3px; }
+    .abs-tag { font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 999px; white-space: nowrap; }
 
     .empty {
       color: var(--muted);
@@ -568,14 +617,50 @@
 
       .calendar-head,
       .calendar {
-        grid-template-columns: repeat(7, minmax(96px, 1fr));
-        min-width: 672px;
+        grid-template-columns: 36px repeat(7, minmax(96px, 1fr));
+        min-width: 708px;
       }
 
       .calendar-wrap {
         overflow-x: auto;
       }
     }
+    @media print {
+      @page { size: A4 landscape; margin: 1.5cm; }
+
+      .sidebar { display: none !important; }
+      .app { display: block; height: auto; overflow: visible; }
+      .main { overflow: visible; height: auto; }
+      .topbar { position: static; background: white; backdrop-filter: none; border-bottom: 2px solid #ccc; }
+      #printButton, #prevMonth, #nextMonth, #yearSelect, #monthSelect, #groupFilter { display: none !important; }
+      .metrics { display: none !important; }
+      .content { padding: 8px 0; gap: 10px; }
+      .calendar-wrap { overflow: visible; box-shadow: none; }
+      .calendar-head, .calendar { grid-template-columns: 32px repeat(7, minmax(0, 1fr)); min-width: unset; }
+      .day { min-height: 72px; font-size: 9px; padding: 6px; }
+      .shift-pill { font-size: 9px; padding: 3px 5px; }
+      .shift-row { gap: 2px; }
+      .week-number { font-size: 9px; }
+      .holiday-label { font-size: 9px; }
+      #dayDetailsSection { display: none !important; }
+      #staffListSection { display: none !important; }
+      body.printing #calendar { display: none !important; }
+      #printCalendar { display: none; }
+      body.printing #printCalendar { display: grid !important; }
+    }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+      display: flex; align-items: center; justify-content: center; z-index: 999;
+    }
+    .modal-box {
+      background: #fff; border-radius: 14px; padding: 24px 28px;
+      width: 300px; box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-box h3 { margin: 0; font-size: 15px; font-weight: 800; }
+    .modal-row { display: flex; flex-direction: column; gap: 4px; }
+    .modal-row label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -612,9 +697,12 @@
 
       <section class="panel">
         <div class="panel-title">
-          <h2>Lägg in frånvaro</h2>
+          <h2 id="absenceFormTitle">Lägg in frånvaro</h2>
         </div>
         <form id="absenceForm" class="stack">
+          <label>Grupp
+            <select id="absenceGroup"></select>
+          </label>
           <label>Person
             <select id="absencePerson"></select>
           </label>
@@ -636,7 +724,10 @@
               <option>Övrigt</option>
             </select>
           </label>
-          <button class="button" type="submit">Spara frånvaro</button>
+          <div style="display:flex; gap:8px;">
+            <button id="absenceCancelEdit" class="button light" type="button" style="display:none; flex:1">Avbryt</button>
+            <button id="absenceSubmitBtn" class="button" type="submit" style="flex:1">Spara frånvaro</button>
+          </div>
         </form>
       </section>
 
@@ -649,7 +740,7 @@
           <label>Importera JSON
             <input id="importFile" type="file" accept="application/json">
           </label>
-          <button id="resetButton" class="button danger" type="button">Återställ demo</button>
+          <button id="resetButton" class="button danger" type="button">Rensa all data</button>
         </div>
       </section>
     </aside>
@@ -666,6 +757,7 @@
           <select id="groupFilter" aria-label="Grupp"></select>
           <button id="prevMonth" class="button light" type="button">‹</button>
           <button id="nextMonth" class="button light" type="button">›</button>
+          <button id="printButton" class="button light" type="button">Skriv ut</button>
         </div>
       </header>
 
@@ -691,6 +783,7 @@
 
         <div class="calendar-wrap">
           <div class="calendar-head">
+            <div></div>
             <div>Mån</div>
             <div>Tis</div>
             <div>Ons</div>
@@ -700,9 +793,10 @@
             <div>Sön</div>
           </div>
           <div id="calendar" class="calendar"></div>
+          <div id="printCalendar" class="calendar" style="display:none"></div>
         </div>
 
-        <div class="details">
+        <div class="details" id="dayDetailsSection">
           <section class="panel light">
             <div class="panel-title">
               <h3 id="selectedTitle">Välj en dag</h3>
@@ -739,19 +833,39 @@
           </section>
         </div>
 
-        <section class="panel light">
+        <section class="panel light" id="staffListSection">
           <div class="panel-title">
             <h3>Personal och frånvaro</h3>
             <div class="tabs">
               <button class="tab active" data-tab="people" type="button">Personal</button>
               <button class="tab" data-tab="absences" type="button">Frånvaro</button>
+              <button class="tab" data-tab="summary" type="button">Sammanfattning</button>
             </div>
           </div>
           <div id="peopleTab" class="table-wrap"></div>
           <div id="absencesTab" class="table-wrap hidden"></div>
+          <div id="summaryTab" class="table-wrap hidden"></div>
         </section>
       </section>
     </main>
+  </div>
+
+  <div id="printModal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h3>Skriv ut schema</h3>
+      <div class="modal-row">
+        <label for="printFrom">Från</label>
+        <input type="date" id="printFrom" />
+      </div>
+      <div class="modal-row">
+        <label for="printTo">Till</label>
+        <input type="date" id="printTo" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="printCancel" class="button light">Avbryt</button>
+        <button type="button" id="printConfirm" class="button">Skriv ut</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -806,45 +920,23 @@
       "Januari", "Februari", "Mars", "April", "Maj", "Juni",
       "Juli", "Augusti", "September", "Oktober", "November", "December"
     ];
-    const STORAGE_KEY = "semesterplanering-mvp-v1";
+    const STORAGE_KEY = "semesterplanering-mvp-v2";
 
     const today = new Date();
     const state = loadState();
     let viewYear = SCHEDULE_BASE_YEAR;
     let viewMonth = 5;
     let selectedDate = `${SCHEDULE_BASE_YEAR}-06-01`;
+    let editingAbsenceId = null;
 
     const $ = (id) => document.getElementById(id);
 
     function seedState() {
-      const people = [];
-      GROUPS.forEach((group, groupIndex) => {
-        for (let i = 1; i <= 5; i += 1) {
-          people.push({
-            id: crypto.randomUUID(),
-            name: `${group.replace(" ", "")}-${i}`,
-            group,
-            role: i === 1 ? "Gruppchef" : "Spanare"
-          });
-        }
-      });
-
       const requirements = {};
       GROUPS.forEach((group) => {
         requirements[requirementKey(group)] = 3;
       });
-
-      const year = SCHEDULE_BASE_YEAR;
-      const samplePeople = people.slice(0, 10);
-      const absences = samplePeople.map((person, index) => ({
-        id: crypto.randomUUID(),
-        personId: person.id,
-        type: index % 3 === 0 ? "Utbildning" : "Semester",
-        start: `${year}-07-${String(7 + index).padStart(2, "0")}`,
-        end: `${year}-07-${String(9 + index).padStart(2, "0")}`
-      }));
-
-      return { people, absences, requirements };
+      return { people: [], absences: [], requirements };
     }
 
     function loadState() {
@@ -1028,6 +1120,168 @@
       return "ok";
     }
 
+    function easterDate(year) {
+      const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+      const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4), k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const month = Math.floor((h + l - 7 * m + 114) / 31);
+      const day = ((h + l - 7 * m + 114) % 31) + 1;
+      return new Date(year, month - 1, day);
+    }
+
+    function swedishHolidays(year) {
+      const e = easterDate(year);
+      const add = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+      const midsommar = new Date(year, 5, 20);
+      while (midsommar.getDay() !== 6) midsommar.setDate(midsommar.getDate() + 1);
+      const allSaints = new Date(year, 9, 31);
+      while (allSaints.getDay() !== 6) allSaints.setDate(allSaints.getDate() + 1);
+      return {
+        [isoDate(new Date(year, 0, 1))]: "Nyårsdagen",
+        [isoDate(new Date(year, 0, 6))]: "Trettondag jul",
+        [isoDate(add(e, -2))]: "Långfredagen",
+        [isoDate(e)]: "Påskdagen",
+        [isoDate(add(e, 1))]: "Annandag påsk",
+        [isoDate(new Date(year, 4, 1))]: "Första maj",
+        [isoDate(add(e, 39))]: "Kristi himmelsfärd",
+        [isoDate(new Date(year, 5, 6))]: "Nationaldagen",
+        [isoDate(add(midsommar, -1))]: "Midsommarafton",
+        [isoDate(midsommar)]: "Midsommardagen",
+        [isoDate(add(e, 49))]: "Pingstdagen",
+        [isoDate(allSaints)]: "Alla helgons dag",
+        [isoDate(new Date(year, 11, 24))]: "Julafton",
+        [isoDate(new Date(year, 11, 25))]: "Juldagen",
+        [isoDate(new Date(year, 11, 26))]: "Annandag jul",
+        [isoDate(new Date(year, 11, 31))]: "Nyårsafton",
+      };
+    }
+
+    function checkConflicts(absence, excludeId = null) {
+      const original = state.absences;
+      const without = excludeId ? original.filter(a => a.id !== excludeId) : original;
+      const dates = [];
+      const cur = new Date(absence.start);
+      const end = new Date(absence.end);
+      while (cur <= end) { dates.push(isoDate(cur)); cur.setDate(cur.getDate() + 1); }
+      state.absences = without;
+      const before = {};
+      dates.forEach(d => { before[d] = dayStatus(d); });
+      state.absences = [...without, absence];
+      const risk = dates.filter(d => {
+        const a = dayStatus(d), b = before[d];
+        return (b === "ok" && a !== "ok") || (b === "warn" && a === "bad");
+      });
+      state.absences = original;
+      return risk;
+    }
+
+    function resetAbsenceForm() {
+      editingAbsenceId = null;
+      $("absenceFormTitle").textContent = "Lägg in frånvaro";
+      $("absenceSubmitBtn").textContent = "Spara frånvaro";
+      $("absenceCancelEdit").style.display = "none";
+      $("absenceForm").reset();
+    }
+
+    function absenceTypeSlug(type) {
+      return { "Semester": "sem", "Föräldraledigt": "foraldra", "VAB": "vab", "Sjuk": "sjuk", "Utbildning": "utb" }[type] || "ovrigt";
+    }
+
+    function absenceTagsHtml(date) {
+      const absences = getAbsencesForDate(date, filteredPeople());
+      const counts = {};
+      absences.forEach(a => { counts[a.type] = (counts[a.type] || 0) + 1; });
+      return Object.entries(counts)
+        .map(([type, n]) => `<span class="abs-tag type-${absenceTypeSlug(type)}">${type} ${n}</span>`)
+        .join("");
+    }
+
+    function renderPrintCalendar(fromDate, toDate) {
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      const startOffset = (from.getDay() + 6) % 7;
+      from.setDate(from.getDate() - startOffset);
+      const endOffset = (to.getDay() + 6) % 7;
+      if (endOffset < 6) to.setDate(to.getDate() + (6 - endOffset));
+
+      const container = $("printCalendar");
+      container.innerHTML = "";
+      const holidayCache = {};
+      const current = new Date(from);
+
+      while (current <= to) {
+        const wk = document.createElement("div");
+        wk.className = "week-number";
+        wk.textContent = `V${isoWeek(current)}`;
+        container.appendChild(wk);
+
+        for (let d = 0; d < 7; d++) {
+          const year = current.getFullYear();
+          if (!holidayCache[year]) holidayCache[year] = swedishHolidays(year);
+          const date = isoDate(current);
+          const holiday = holidayCache[year][date];
+          const rows = staffingGroupsForView(date);
+          const status = dayStatus(date);
+          const outsideSummer = !isSummerWeek(current);
+          const isToday = date === isoDate(today);
+
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = `day ${outsideSummer ? "outside" : `status-${status}`} ${isToday ? "today" : ""}`;
+
+          const visibleRows = rows
+            .filter((row) => row.staffing.scheduleEntry || row.staffing.absences.length || row.staffing.status !== "ok")
+            .slice(0, 3);
+          const totalPresent = rows.reduce((sum, row) => sum + row.staffing.present.length, 0);
+          const totalMin = rows.reduce((sum, row) => sum + row.staffing.min, 0);
+          const printAbsTags = absenceTagsHtml(date);
+
+          cell.innerHTML = `
+            <div class="date-line">
+              <strong>${current.getDate()}</strong>
+              ${holiday ? `<span class="holiday-label">${holiday}</span>` : ""}
+              <span class="status ${outsideSummer ? "warn" : status}">${outsideSummer ? `V${isoWeek(current)}` : status === "bad" ? "Låg" : status === "warn" ? "Precis" : "OK"}</span>
+            </div>
+            <div class="shift-list">
+              ${outsideSummer ? `
+                <div class="shift-pill warn">
+                  <div class="shift-row">
+                    <span class="shift-count">Utanför sommarperiod</span>
+                  </div>
+                </div>
+              ` : status !== "ok" ? `
+                <div class="shift-pill ${status}">
+                  <div class="shift-row">
+                    <span class="shift-name">Totalt</span>
+                    <span style="font-weight:800">${totalPresent}/${totalMin}</span>
+                  </div>
+                </div>
+              ` : ""}
+              ${outsideSummer ? "" : visibleRows.map((row) => `
+                <div class="shift-pill ${row.staffing.status}">
+                  <div class="shift-row">
+                    <span class="shift-name">${row.group.replace("Grupp ", "G")} v${row.staffing.scheduleEntry?.scheduleWeek || "-"}</span>
+                    <span class="shift-count">${row.staffing.scheduleEntry?.time || "Ledig"}</span>
+                  </div>
+                  <div class="shift-row" style="font-size:11px">
+                    <span style="opacity:0.7">${row.staffing.scheduleEntry?.note || ""}</span>
+                    <span style="font-weight:800">${row.staffing.present.length}/${row.staffing.min}</span>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+            ${printAbsTags ? `<div class="abs-row">${printAbsTags}</div>` : ""}
+          `;
+          container.appendChild(cell);
+          current.setDate(current.getDate() + 1);
+        }
+      }
+    }
+
     function renderCalendar() {
       $("monthTitle").textContent = `${MONTHS[viewMonth]} ${viewYear}`;
       $("summaryText").textContent = `Vecka ${SUMMER_START_WEEK}-${SUMMER_END_WEEK} · ${$("groupFilter").value} · skift hämtas från schemat.`;
@@ -1039,11 +1293,21 @@
 
       const calendar = $("calendar");
       calendar.innerHTML = "";
+      const holidays = swedishHolidays(viewYear);
 
       for (let index = 0; index < 42; index += 1) {
         const current = new Date(start);
         current.setDate(start.getDate() + index);
+
+        if (index % 7 === 0) {
+          const wk = document.createElement("div");
+          wk.className = "week-number";
+          wk.textContent = `V${isoWeek(current)}`;
+          calendar.appendChild(wk);
+        }
+
         const date = isoDate(current);
+        const holiday = holidays[date];
         const rows = staffingGroupsForView(date);
         const status = dayStatus(date);
         const isOutside = current.getMonth() !== viewMonth;
@@ -1052,7 +1316,8 @@
 
         const cell = document.createElement("button");
         cell.type = "button";
-        cell.className = `day ${isOutside || outsideSummer ? "outside" : ""} ${isToday ? "today" : ""}`;
+        cell.className = `day ${isOutside || outsideSummer ? "outside" : `status-${status}`} ${isToday ? "today" : ""}`;
+        cell.dataset.date = date;
         cell.addEventListener("click", () => {
           selectedDate = date;
           renderDetails();
@@ -1063,26 +1328,43 @@
           .slice(0, 3);
         const totalPresent = rows.reduce((sum, row) => sum + row.staffing.present.length, 0);
         const totalMin = rows.reduce((sum, row) => sum + row.staffing.min, 0);
+        const absTags = absenceTagsHtml(date);
 
         cell.innerHTML = `
           <div class="date-line">
             <strong>${current.getDate()}</strong>
+            ${holiday ? `<span class="holiday-label">${holiday}</span>` : ""}
             <span class="status ${outsideSummer ? "warn" : status}">${outsideSummer ? `V${isoWeek(current)}` : status === "bad" ? "Låg" : status === "warn" ? "Precis" : "OK"}</span>
           </div>
           <div class="shift-list">
-            <div class="shift-pill ${outsideSummer ? "warn" : status}">
-              <span class="shift-name">Totalt</span>
-              <span class="shift-count">${outsideSummer ? "Utanför sommarperiod" : `${totalPresent} i tjänst`}</span>
-              <span>${totalMin}</span>
-            </div>
+            ${outsideSummer ? `
+              <div class="shift-pill warn">
+                <div class="shift-row">
+                  <span class="shift-count">Utanför sommarperiod</span>
+                </div>
+              </div>
+            ` : status !== "ok" ? `
+              <div class="shift-pill ${status}">
+                <div class="shift-row">
+                  <span class="shift-name">Totalt</span>
+                  <span style="font-weight:800">${totalPresent}/${totalMin}</span>
+                </div>
+              </div>
+            ` : ""}
             ${outsideSummer ? "" : visibleRows.map((row) => `
               <div class="shift-pill ${row.staffing.status}">
-                <span class="shift-name">${row.group.replace("Grupp ", "G")} v${row.staffing.scheduleEntry?.scheduleWeek || "-"}</span>
-                <span class="shift-count">${row.shift} · ${row.staffing.present.length} i tjänst</span>
-                <span>${row.staffing.min}</span>
+                <div class="shift-row">
+                  <span class="shift-name">${row.group.replace("Grupp ", "G")} v${row.staffing.scheduleEntry?.scheduleWeek || "-"}</span>
+                  <span class="shift-count">${row.staffing.scheduleEntry?.time || "Ledig"}</span>
+                </div>
+                <div class="shift-row" style="font-size:11px">
+                  <span style="opacity:0.7">${row.staffing.scheduleEntry?.note || ""}</span>
+                  <span style="font-weight:800">${row.staffing.present.length}/${row.staffing.min}</span>
+                </div>
               </div>
             `).join("")}
           </div>
+          ${absTags ? `<div class="abs-row">${absTags}</div>` : ""}
         `;
         calendar.appendChild(cell);
       }
@@ -1151,7 +1433,7 @@
           </div>
           <div style="margin-top: 10px;">
             <strong>Frånvarande</strong>
-            <div>${absentNames.length ? absentNames.map((person) => `<span class="person-chip absence-chip">${person.name} · ${person.type}</span>`).join("") : `<div class="empty">Ingen frånvaro denna dag.</div>`}</div>
+            <div>${absentNames.length ? absentNames.map((person) => `<span class="person-chip absence-chip type-${absenceTypeSlug(person.type)}">${person.name} · ${person.type}</span>`).join("") : `<div class="empty">Ingen frånvaro denna dag.</div>`}</div>
           </div>
         `;
         details.appendChild(section);
@@ -1172,27 +1454,33 @@
     }
 
     function renderPeopleTable() {
-      const people = filteredPeople();
+      const people = filteredPeople().slice().sort((a, b) =>
+        a.group !== b.group ? a.group.localeCompare(b.group) : a.name.localeCompare(b.name, "sv-SE")
+      );
+
+      if (!people.length) {
+        $("peopleTab").innerHTML = `<div class="empty" style="padding:24px">Ingen personal i vald vy.</div>`;
+        return;
+      }
+
+      const grouped = {};
+      people.forEach(p => { (grouped[p.group] = grouped[p.group] || []).push(p); });
+
+      const bodyRows = Object.entries(grouped).flatMap(([group, members]) => [
+        `<tr class="group-header-row"><td colspan="3">${group}</td></tr>`,
+        ...members.map(person => `
+          <tr>
+            <td>${person.name}</td>
+            <td>${person.role || "–"}</td>
+            <td><button class="mini-button" title="Ta bort person" data-remove-person="${person.id}">×</button></td>
+          </tr>
+        `)
+      ]);
+
       $("peopleTab").innerHTML = `
         <table>
-          <thead>
-            <tr>
-              <th>Namn</th>
-              <th>Grupp</th>
-              <th>Roll</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${people.map((person) => `
-              <tr>
-                <td>${person.name}</td>
-                <td>${person.group}</td>
-                <td>${person.role || "-"}</td>
-                <td><button class="mini-button" title="Ta bort person" data-remove-person="${person.id}">×</button></td>
-              </tr>
-            `).join("") || `<tr><td colspan="4">Ingen personal i vald vy.</td></tr>`}
-          </tbody>
+          <thead><tr><th>Namn</th><th>Roll</th><th></th></tr></thead>
+          <tbody>${bodyRows.join("")}</tbody>
         </table>
       `;
     }
@@ -1200,7 +1488,10 @@
     function renderAbsencesTable() {
       const people = filteredPeople();
       const peopleIds = new Set(people.map((person) => person.id));
-      const absences = state.absences.filter((absence) => peopleIds.has(absence.personId));
+      const absences = state.absences
+        .filter((absence) => peopleIds.has(absence.personId))
+        .slice()
+        .sort((a, b) => a.start !== b.start ? a.start.localeCompare(b.start) : a.end.localeCompare(b.end));
       $("absencesTab").innerHTML = `
         <table>
           <thead>
@@ -1221,7 +1512,10 @@
                   <td>${absence.type}</td>
                   <td>${absence.start}</td>
                   <td>${absence.end}</td>
-                  <td><button class="mini-button" title="Ta bort frånvaro" data-remove-absence="${absence.id}">×</button></td>
+                  <td style="display:flex;gap:4px;">
+                    <button class="mini-button" title="Redigera frånvaro" data-edit-absence="${absence.id}">✏</button>
+                    <button class="mini-button" title="Ta bort frånvaro" data-remove-absence="${absence.id}">×</button>
+                  </td>
                 </tr>
               `;
             }).join("") || `<tr><td colspan="5">Ingen frånvaro i vald vy.</td></tr>`}
@@ -1233,17 +1527,70 @@
     function refreshPersonSelect() {
       const select = $("absencePerson");
       const current = select.value;
+      const group = $("absenceGroup")?.value;
       select.innerHTML = "";
       state.people
         .slice()
+        .filter((person) => !group || group === "Alla" || person.group === group)
         .sort((a, b) => a.name.localeCompare(b.name, "sv-SE"))
         .forEach((person) => {
           const option = document.createElement("option");
           option.value = person.id;
-          option.textContent = `${person.name} · ${person.group}`;
+          option.textContent = person.name;
           select.appendChild(option);
         });
       if (current) select.value = current;
+    }
+
+    function renderSummaryTable() {
+      const TYPES = ["Semester", "Föräldraledigt", "VAB", "Sjuk", "Utbildning", "Övrigt"];
+      const TYPE_SHORT = { "Föräldraledigt": "Föräldra" };
+
+      function countDays(personId, type) {
+        return state.absences
+          .filter(a => a.personId === personId && (!type || a.type === type))
+          .reduce((sum, a) => sum + Math.round((new Date(a.end) - new Date(a.start)) / 86400000) + 1, 0);
+      }
+
+      const people = filteredPeople().slice().sort((a, b) =>
+        a.group !== b.group ? a.group.localeCompare(b.group) : a.name.localeCompare(b.name, "sv-SE")
+      );
+
+      if (!people.length) {
+        $("summaryTab").innerHTML = `<div class="empty" style="padding:24px">Ingen personal registrerad.</div>`;
+        return;
+      }
+
+      const grouped = {};
+      people.forEach(p => { (grouped[p.group] = grouped[p.group] || []).push(p); });
+
+      const bodyRows = Object.entries(grouped).flatMap(([group, members]) => [
+        `<tr class="group-header-row"><td colspan="${TYPES.length + 3}">${group}</td></tr>`,
+        ...members.map(person => {
+          const total = countDays(person.id, null);
+          return `<tr>
+            <td>${person.name}</td>
+            <td>${person.role || "–"}</td>
+            ${TYPES.map(type => {
+              const d = countDays(person.id, type);
+              return `<td class="text-center">${d > 0 ? `<span class="abs-tag type-${absenceTypeSlug(type)}">${d}</span>` : `<span style="color:var(--muted)">–</span>`}</td>`;
+            }).join("")}
+            <td class="text-center"><strong>${total > 0 ? total : "–"}</strong></td>
+          </tr>`;
+        })
+      ]);
+
+      $("summaryTab").innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Namn</th><th>Roll</th>
+              ${TYPES.map(t => `<th class="text-center"><span class="abs-tag type-${absenceTypeSlug(t)}">${TYPE_SHORT[t] || t}</span></th>`).join("")}
+              <th class="text-center">Totalt</th>
+            </tr>
+          </thead>
+          <tbody>${bodyRows.join("")}</tbody>
+        </table>`;
     }
 
     function renderAll() {
@@ -1253,12 +1600,15 @@
       renderRequirements();
       renderPeopleTable();
       renderAbsencesTable();
+      renderSummaryTable();
     }
 
     function setupControls() {
       fillSelect($("personGroup"), GROUPS, GROUPS[0]);
       fillSelect($("requirementGroup"), GROUPS, GROUPS[0]);
       fillSelect($("groupFilter"), GROUPS, "Alla", "Alla grupper");
+      fillSelect($("absenceGroup"), GROUPS, "Alla", "Alla grupper");
+      $("absenceGroup").addEventListener("change", refreshPersonSelect);
 
       const years = Array.from({ length: 7 }, (_, index) => String(today.getFullYear() - 1 + index));
       fillSelect($("yearSelect"), years, String(viewYear));
@@ -1302,8 +1652,9 @@
           group: $("personGroup").value,
           role: $("personRole").value.trim()
         });
+        const savedGroup = $("personGroup").value;
         event.target.reset();
-        $("personGroup").value = GROUPS[0];
+        $("personGroup").value = savedGroup;
         saveState();
         renderAll();
       });
@@ -1312,20 +1663,35 @@
         event.preventDefault();
         const start = $("absenceStart").value;
         const end = $("absenceEnd").value;
-        if (end < start) {
-          alert("Till-datum kan inte vara före från-datum.");
-          return;
-        }
-        state.absences.push({
-          id: crypto.randomUUID(),
+        if (end < start) { alert("Till-datum kan inte vara före från-datum."); return; }
+
+        const absence = {
+          id: editingAbsenceId || crypto.randomUUID(),
           personId: $("absencePerson").value,
           type: $("absenceType").value,
-          start,
-          end
-        });
+          start, end
+        };
+
+        const riskDates = checkConflicts(absence, editingAbsenceId);
+        if (riskDates.length > 0) {
+          const shown = riskDates.slice(0, 5).join(", ");
+          const extra = riskDates.length > 5 ? ` (+${riskDates.length - 5} fler)` : "";
+          const n = riskDates.length;
+          if (!confirm(`Obs! Denna frånvaro skapar ${n} riskdag${n !== 1 ? "ar" : ""}:\n${shown}${extra}\n\nVill du spara ändå?`)) return;
+        }
+
+        if (editingAbsenceId) {
+          const idx = state.absences.findIndex(a => a.id === editingAbsenceId);
+          if (idx !== -1) state.absences[idx] = absence;
+          resetAbsenceForm();
+        } else {
+          state.absences.push(absence);
+        }
         saveState();
         renderAll();
       });
+
+      $("absenceCancelEdit").addEventListener("click", resetAbsenceForm);
 
       $("requirementForm").addEventListener("submit", (event) => {
         event.preventDefault();
@@ -1351,8 +1717,30 @@
         if (absenceButton) {
           const id = absenceButton.dataset.removeAbsence;
           state.absences = state.absences.filter((absence) => absence.id !== id);
+          if (editingAbsenceId === id) resetAbsenceForm();
           saveState();
           renderAll();
+        }
+
+        const editAbsenceButton = event.target.closest("[data-edit-absence]");
+        if (editAbsenceButton) {
+          const id = editAbsenceButton.dataset.editAbsence;
+          const absence = state.absences.find(a => a.id === id);
+          if (!absence) return;
+          const person = state.people.find(p => p.id === absence.personId);
+          editingAbsenceId = id;
+          if (person) {
+            $("absenceGroup").value = person.group;
+            refreshPersonSelect();
+            $("absencePerson").value = absence.personId;
+          }
+          $("absenceStart").value = absence.start;
+          $("absenceEnd").value = absence.end;
+          $("absenceType").value = absence.type;
+          $("absenceFormTitle").textContent = "Redigera frånvaro";
+          $("absenceSubmitBtn").textContent = "Uppdatera";
+          $("absenceCancelEdit").style.display = "";
+          $("absenceForm").scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
       });
 
@@ -1362,6 +1750,7 @@
           tab.classList.add("active");
           $("peopleTab").classList.toggle("hidden", tab.dataset.tab !== "people");
           $("absencesTab").classList.toggle("hidden", tab.dataset.tab !== "absences");
+          $("summaryTab").classList.toggle("hidden", tab.dataset.tab !== "summary");
         });
       });
 
@@ -1395,8 +1784,38 @@
         renderAll();
       });
 
+      $("printButton").addEventListener("click", () => {
+        const firstDay = new Date(viewYear, viewMonth, 1);
+        const lastDay = new Date(viewYear, viewMonth + 1, 0);
+        $("printFrom").value = isoDate(firstDay);
+        $("printTo").value = isoDate(lastDay);
+        $("printModal").style.display = "flex";
+      });
+      $("printCancel").addEventListener("click", () => {
+        $("printModal").style.display = "none";
+      });
+      $("printModal").addEventListener("click", (e) => {
+        if (e.target === $("printModal")) $("printModal").style.display = "none";
+      });
+      $("printConfirm").addEventListener("click", () => {
+        const fromDate = $("printFrom").value;
+        const toDate = $("printTo").value;
+        if (!fromDate || !toDate || fromDate > toDate) return;
+        $("printModal").style.display = "none";
+
+        renderPrintCalendar(fromDate, toDate);
+        document.body.classList.add("printing");
+
+        window.addEventListener("afterprint", function cleanup() {
+          document.body.classList.remove("printing");
+          $("printCalendar").innerHTML = "";
+          window.removeEventListener("afterprint", cleanup);
+        });
+        window.print();
+      });
+
       $("resetButton").addEventListener("click", () => {
-        if (!confirm("Vill du återställa demo-data?")) return;
+        if (!confirm("Vill du rensa all personal och frånvaro? Det går inte att ångra.")) return;
         const fresh = seedState();
         state.people = fresh.people;
         state.absences = fresh.absences;
@@ -1417,5 +1836,6 @@
     updateRequirementInput();
     renderAll();
   </script>
+
 </body>
 </html>
