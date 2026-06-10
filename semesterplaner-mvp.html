@@ -1,0 +1,1421 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semesterplanering</title>
+  <style>
+    :root {
+      --bg: #f4f6f5;
+      --panel: #ffffff;
+      --ink: #1f2522;
+      --muted: #66736d;
+      --line: #d8dfdc;
+      --soft: #eef2f0;
+      --green: #1f7a4f;
+      --green-soft: #dcf4e7;
+      --amber: #a96800;
+      --amber-soft: #fff0c7;
+      --red: #b03232;
+      --red-soft: #ffe0df;
+      --blue: #276b9a;
+      --blue-soft: #dfeefa;
+      --shadow: 0 10px 30px rgba(30, 42, 35, 0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: #18211d;
+      color: #f8fbf9;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      min-width: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #51b37d, #2d75a2);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      font-size: 20px;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: #b9c8c1;
+      font-size: 13px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .panel.light {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .panel-title h2,
+    .panel-title h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .panel-title small {
+      color: #b9c8c1;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: inherit;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fff;
+      color: var(--ink);
+      min-height: 40px;
+    }
+
+    .sidebar input,
+    .sidebar select {
+      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .sidebar option {
+      color: #111;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .button {
+      min-height: 40px;
+      border-radius: 6px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 750;
+      color: #fff;
+      background: var(--green);
+      white-space: nowrap;
+    }
+
+    .button.secondary {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .button.light {
+      color: var(--ink);
+      background: var(--soft);
+      border: 1px solid var(--line);
+    }
+
+    .button.danger {
+      background: var(--red);
+    }
+
+    .main {
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(244, 246, 245, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .topbar p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .toolbar select,
+    .toolbar input {
+      width: auto;
+      min-width: 130px;
+    }
+
+    .content {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .content > * {
+      min-width: 0;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      min-height: 92px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .calendar-wrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .calendar-head {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(110px, 1fr));
+      border-bottom: 1px solid var(--line);
+      background: #f8faf9;
+    }
+
+    .calendar-head div {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(110px, 1fr));
+    }
+
+    .day {
+      min-height: 132px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #fff;
+    }
+
+    .day:nth-child(7n) {
+      border-right: 0;
+    }
+
+    .day.outside {
+      background: #f7f8f7;
+      color: #9aa39f;
+    }
+
+    .day.today {
+      outline: 2px solid var(--blue);
+      outline-offset: -2px;
+    }
+
+    .date-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .date-line strong {
+      font-size: 15px;
+    }
+
+    .status {
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1;
+    }
+
+    .status.ok {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .status.warn {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .status.bad {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .shift-list {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .shift-pill {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px;
+      background: var(--soft);
+      padding: 6px;
+      min-width: 0;
+    }
+
+    .shift-pill.bad {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .shift-pill.warn {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .shift-name {
+      font-weight: 800;
+    }
+
+    .shift-count {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mini-button {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      font-weight: 900;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      min-width: 760px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f8faf9;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      min-height: 36px;
+      border-radius: 6px;
+      padding: 0 12px;
+      font-weight: 800;
+      background: var(--soft);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .tab.active {
+      background: #20382d;
+      color: #fff;
+      border-color: #20382d;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: 18px;
+    }
+
+    .person-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      margin: 3px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: #174d72;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .absence-chip {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 16px;
+      background: #f8faf9;
+      border-radius: 8px;
+      border: 1px dashed var(--line);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1050px) {
+      .app {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+      }
+
+      .sidebar {
+        position: static;
+        overflow: visible;
+      }
+
+      .main {
+        overflow: visible;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .details {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        justify-content: stretch;
+      }
+
+      .toolbar select,
+      .toolbar input,
+      .toolbar .button {
+        width: 100%;
+      }
+
+      .content {
+        padding: 14px;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-head,
+      .calendar {
+        grid-template-columns: repeat(7, minmax(96px, 1fr));
+        min-width: 672px;
+      }
+
+      .calendar-wrap {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">SP</div>
+        <div>
+          <h1>Semesterplanering</h1>
+          <p>Grupp 7-9 · tvåskift · sommar</p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Lägg till person</h2>
+        </div>
+        <form id="personForm" class="stack">
+          <label>Namn
+            <input id="personName" required placeholder="Ex. Anna Larsson">
+          </label>
+          <label>Grupp
+            <select id="personGroup"></select>
+          </label>
+          <label>Roll
+            <select id="personRole">
+              <option>Spanare</option>
+              <option>Gruppchef</option>
+            </select>
+          </label>
+          <button class="button" type="submit">Lägg till</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Lägg in frånvaro</h2>
+        </div>
+        <form id="absenceForm" class="stack">
+          <label>Person
+            <select id="absencePerson"></select>
+          </label>
+          <div class="row">
+            <label>Från
+              <input id="absenceStart" type="date" required>
+            </label>
+            <label>Till
+              <input id="absenceEnd" type="date" required>
+            </label>
+          </div>
+          <label>Typ
+            <select id="absenceType">
+              <option>Semester</option>
+              <option>Föräldraledigt</option>
+              <option>VAB</option>
+              <option>Sjuk</option>
+              <option>Utbildning</option>
+              <option>Övrigt</option>
+            </select>
+          </label>
+          <button class="button" type="submit">Spara frånvaro</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Data</h2>
+        </div>
+        <div class="stack">
+          <button id="exportButton" class="button secondary" type="button">Exportera JSON</button>
+          <label>Importera JSON
+            <input id="importFile" type="file" accept="application/json">
+          </label>
+          <button id="resetButton" class="button danger" type="button">Återställ demo</button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+        <h2 id="monthTitle">Sommarschema</h2>
+          <p id="summaryText">Bemanning visas per grupp och skift.</p>
+        </div>
+        <div class="toolbar">
+          <select id="yearSelect" aria-label="År"></select>
+          <select id="monthSelect" aria-label="Månad"></select>
+          <select id="groupFilter" aria-label="Grupp"></select>
+          <button id="prevMonth" class="button light" type="button">‹</button>
+          <button id="nextMonth" class="button light" type="button">›</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="metrics">
+          <div class="metric">
+            <span>Personer i vald vy</span>
+            <strong id="metricPeople">0</strong>
+          </div>
+          <div class="metric">
+            <span>Frånvarodagar i vald månad</span>
+            <strong id="metricAbsenceDays">0</strong>
+          </div>
+          <div class="metric">
+            <span>Riskdagar i vald månad</span>
+            <strong id="metricRiskDays">0</strong>
+          </div>
+          <div class="metric">
+            <span>Lägsta bemanning</span>
+            <strong id="metricLowest">0</strong>
+          </div>
+        </div>
+
+        <div class="calendar-wrap">
+          <div class="calendar-head">
+            <div>Mån</div>
+            <div>Tis</div>
+            <div>Ons</div>
+            <div>Tor</div>
+            <div>Fre</div>
+            <div>Lör</div>
+            <div>Sön</div>
+          </div>
+          <div id="calendar" class="calendar"></div>
+        </div>
+
+        <div class="details">
+          <section class="panel light">
+            <div class="panel-title">
+              <h3 id="selectedTitle">Välj en dag</h3>
+            </div>
+            <div id="dayDetails" class="stack"></div>
+          </section>
+
+          <section class="panel light">
+            <div class="panel-title">
+              <h3>Bemanningskrav</h3>
+            </div>
+            <form id="requirementForm" class="stack">
+              <div class="row">
+                <label>Grupp
+                  <select id="requirementGroup"></select>
+                </label>
+                <label>Minimum i tjänst
+                  <input id="requirementMin" type="number" min="0" max="99" required>
+                </label>
+              </div>
+              <button class="button" type="submit">Spara krav</button>
+            </form>
+            <div class="table-wrap" style="margin-top: 14px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Grupp</th>
+                    <th>Minimum</th>
+                  </tr>
+                </thead>
+                <tbody id="requirementTable"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel light">
+          <div class="panel-title">
+            <h3>Personal och frånvaro</h3>
+            <div class="tabs">
+              <button class="tab active" data-tab="people" type="button">Personal</button>
+              <button class="tab" data-tab="absences" type="button">Frånvaro</button>
+            </div>
+          </div>
+          <div id="peopleTab" class="table-wrap"></div>
+          <div id="absencesTab" class="table-wrap hidden"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const GROUPS = ["Grupp 7", "Grupp 8", "Grupp 9"];
+    const SUMMER_START_WEEK = 23;
+    const SUMMER_END_WEEK = 36;
+    const SCHEDULE_BASE_YEAR = 2027;
+    const SCHEDULE_BASE_WEEK = 23;
+    const SCHEDULE_START_BY_GROUP = {
+      "Grupp 7": 4,
+      "Grupp 8": 2,
+      "Grupp 9": 6
+    };
+    const SCHEDULE_TEMPLATE = {
+      1: {
+        3: { time: "15:00-01:00" },
+        4: { time: "15:00-01:00" }
+      },
+      2: {
+        3: { time: "15:00-01:00" },
+        4: { time: "13:00-23:00", note: "Fys" },
+        5: { time: "07:30-16:35" }
+      },
+      3: {
+        1: { time: "15:00-24:00" },
+        2: { time: "15:00-01:00" },
+        3: { time: "13:00-23:00", note: "Fys" },
+        4: { time: "07:30-16:35" },
+        5: { time: "07:30-16:30" }
+      },
+      4: {
+        1: { time: "15:00-01:00" },
+        2: { time: "13:00-23:00", note: "Fys" },
+        3: { time: "07:30-16:30" },
+        4: { time: "07:30-16:30", note: "APM, Utb" }
+      },
+      5: {
+        1: { time: "13:00-23:00", note: "Fys" },
+        2: { time: "07:30-16:35" },
+        5: { time: "15:00-01:00" },
+        6: { time: "15:00-01:00" },
+        7: { time: "13:00-23:00", note: "Fys" }
+      },
+      6: {
+        1: { time: "07:30-16:35" },
+        5: { time: "15:00-01:00" },
+        6: { time: "15:00-01:00" },
+        7: { time: "13:00-23:15", note: "Fys" }
+      }
+    };
+    const MONTHS = [
+      "Januari", "Februari", "Mars", "April", "Maj", "Juni",
+      "Juli", "Augusti", "September", "Oktober", "November", "December"
+    ];
+    const STORAGE_KEY = "semesterplanering-mvp-v1";
+
+    const today = new Date();
+    const state = loadState();
+    let viewYear = SCHEDULE_BASE_YEAR;
+    let viewMonth = 5;
+    let selectedDate = `${SCHEDULE_BASE_YEAR}-06-01`;
+
+    const $ = (id) => document.getElementById(id);
+
+    function seedState() {
+      const people = [];
+      GROUPS.forEach((group, groupIndex) => {
+        for (let i = 1; i <= 5; i += 1) {
+          people.push({
+            id: crypto.randomUUID(),
+            name: `${group.replace(" ", "")}-${i}`,
+            group,
+            role: i === 1 ? "Gruppchef" : "Spanare"
+          });
+        }
+      });
+
+      const requirements = {};
+      GROUPS.forEach((group) => {
+        requirements[requirementKey(group)] = 3;
+      });
+
+      const year = SCHEDULE_BASE_YEAR;
+      const samplePeople = people.slice(0, 10);
+      const absences = samplePeople.map((person, index) => ({
+        id: crypto.randomUUID(),
+        personId: person.id,
+        type: index % 3 === 0 ? "Utbildning" : "Semester",
+        start: `${year}-07-${String(7 + index).padStart(2, "0")}`,
+        end: `${year}-07-${String(9 + index).padStart(2, "0")}`
+      }));
+
+      return { people, absences, requirements };
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return seedState();
+      try {
+        const parsed = JSON.parse(saved);
+        const people = Array.isArray(parsed.people) ? parsed.people
+          .filter((person) => !/^Grupp[789]-E\d$/.test(person.name || ""))
+          .map((person) => ({
+            ...person,
+            name: (person.name || "").replace(/^(Grupp[789])-F(\d)$/, "$1-$2"),
+            shift: undefined,
+            role: normalizeRole(person.role)
+          })).filter((person) => GROUPS.includes(person.group)) : [];
+        const peopleIds = new Set(people.map((person) => person.id));
+        return {
+          people,
+          absences: Array.isArray(parsed.absences) ? parsed.absences.filter((absence) => peopleIds.has(absence.personId)) : [],
+          requirements: Object.fromEntries(
+            Object.entries(parsed.requirements || {}).map(([key, value]) => [key.split("__")[0], value])
+              .filter(([key]) => GROUPS.includes(key))
+          )
+        };
+      } catch {
+        return seedState();
+      }
+    }
+
+    function normalizeRole(role) {
+      return role === "Gruppchef" || role === "Samordnare" ? "Gruppchef" : "Spanare";
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function requirementKey(group) {
+      return group;
+    }
+
+    function isoDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseIso(value) {
+      const [year, month, day] = value.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function dateLabel(value) {
+      return parseIso(value).toLocaleDateString("sv-SE", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function eachDate(start, end, callback) {
+      const cursor = parseIso(start);
+      const last = parseIso(end);
+      while (cursor <= last) {
+        callback(isoDate(cursor), new Date(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    }
+
+    function dateInRange(date, start, end) {
+      return date >= start && date <= end;
+    }
+
+    function isoWeek(date) {
+      const copy = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = copy.getUTCDay() || 7;
+      copy.setUTCDate(copy.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(copy.getUTCFullYear(), 0, 1));
+      return Math.ceil((((copy - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function isoWeekYear(date) {
+      const copy = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = copy.getUTCDay() || 7;
+      copy.setUTCDate(copy.getUTCDate() + 4 - day);
+      return copy.getUTCFullYear();
+    }
+
+    function isoDay(date) {
+      return date.getDay() || 7;
+    }
+
+    function weeksBetweenBase(date) {
+      const weekYear = isoWeekYear(date);
+      return (weekYear - SCHEDULE_BASE_YEAR) * 52 + (isoWeek(date) - SCHEDULE_BASE_WEEK);
+    }
+
+    function scheduleWeekForGroup(group, date) {
+      const startWeek = SCHEDULE_START_BY_GROUP[group];
+      const zeroBased = (startWeek - 1 + weeksBetweenBase(date)) % 6;
+      return ((zeroBased + 6) % 6) + 1;
+    }
+
+    function isSummerWeek(date) {
+      const week = isoWeek(date);
+      const year = isoWeekYear(date);
+      return year === SCHEDULE_BASE_YEAR && week >= SUMMER_START_WEEK && week <= SUMMER_END_WEEK;
+    }
+
+    function getScheduleEntry(group, date) {
+      if (!isSummerWeek(date)) return null;
+      const scheduleWeek = scheduleWeekForGroup(group, date);
+      const entry = SCHEDULE_TEMPLATE[scheduleWeek]?.[isoDay(date)];
+      if (!entry) return null;
+      return {
+        ...entry,
+        scheduleWeek,
+        label: entry.note ? `${entry.time} · ${entry.note}` : entry.time
+      };
+    }
+
+    function fillSelect(select, options, selected, includeAllLabel) {
+      select.innerHTML = "";
+      if (includeAllLabel) {
+        const allOption = document.createElement("option");
+        allOption.value = "Alla";
+        allOption.textContent = includeAllLabel;
+        select.appendChild(allOption);
+      }
+      options.forEach((option) => {
+        const element = document.createElement("option");
+        element.value = option;
+        element.textContent = option;
+        select.appendChild(element);
+      });
+      select.value = selected || select.options[0]?.value || "";
+    }
+
+    function filteredPeople() {
+      const group = $("groupFilter").value;
+      return state.people.filter((person) => {
+        const groupMatch = group === "Alla" || person.group === group;
+        return groupMatch;
+      });
+    }
+
+    function getAbsencesForDate(date, people = state.people) {
+      const peopleIds = new Set(people.map((person) => person.id));
+      return state.absences.filter((absence) => {
+        return peopleIds.has(absence.personId) && dateInRange(date, absence.start, absence.end);
+      });
+    }
+
+    function getStaffing(date, group) {
+      const dateObject = parseIso(date);
+      const scheduleEntry = getScheduleEntry(group, dateObject);
+      const people = scheduleEntry ? state.people.filter((person) => person.group === group) : [];
+      const absences = getAbsencesForDate(date, people);
+      const absentIds = new Set(absences.map((absence) => absence.personId));
+      const present = people.filter((person) => !absentIds.has(person.id));
+      const min = scheduleEntry ? Number(state.requirements[requirementKey(group)] ?? 0) : 0;
+      const status = !scheduleEntry ? "ok" : present.length < min ? "bad" : present.length === min ? "warn" : "ok";
+      return { people, absences, present, min, status, scheduleEntry };
+    }
+
+    function staffingGroupsForView(date) {
+      const group = $("groupFilter").value;
+      const groups = group === "Alla" ? GROUPS : [group];
+      return groups.map((g) => {
+        const staffing = getStaffing(date, g);
+        return { group: g, shift: staffing.scheduleEntry?.label || "Ledig", staffing };
+      });
+    }
+
+    function dayStatus(date) {
+      const rows = staffingGroupsForView(date);
+      if (rows.some((row) => row.staffing.status === "bad")) return "bad";
+      if (rows.some((row) => row.staffing.status === "warn")) return "warn";
+      return "ok";
+    }
+
+    function renderCalendar() {
+      $("monthTitle").textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+      $("summaryText").textContent = `Vecka ${SUMMER_START_WEEK}-${SUMMER_END_WEEK} · ${$("groupFilter").value} · skift hämtas från schemat.`;
+
+      const first = new Date(viewYear, viewMonth, 1);
+      const start = new Date(first);
+      const firstDay = (first.getDay() + 6) % 7;
+      start.setDate(first.getDate() - firstDay);
+
+      const calendar = $("calendar");
+      calendar.innerHTML = "";
+
+      for (let index = 0; index < 42; index += 1) {
+        const current = new Date(start);
+        current.setDate(start.getDate() + index);
+        const date = isoDate(current);
+        const rows = staffingGroupsForView(date);
+        const status = dayStatus(date);
+        const isOutside = current.getMonth() !== viewMonth;
+        const outsideSummer = !isSummerWeek(current);
+        const isToday = date === isoDate(today);
+
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = `day ${isOutside || outsideSummer ? "outside" : ""} ${isToday ? "today" : ""}`;
+        cell.addEventListener("click", () => {
+          selectedDate = date;
+          renderDetails();
+        });
+
+        const visibleRows = rows
+          .filter((row) => row.staffing.scheduleEntry || row.staffing.absences.length || row.staffing.status !== "ok")
+          .slice(0, 3);
+        const totalPresent = rows.reduce((sum, row) => sum + row.staffing.present.length, 0);
+        const totalMin = rows.reduce((sum, row) => sum + row.staffing.min, 0);
+
+        cell.innerHTML = `
+          <div class="date-line">
+            <strong>${current.getDate()}</strong>
+            <span class="status ${outsideSummer ? "warn" : status}">${outsideSummer ? `V${isoWeek(current)}` : status === "bad" ? "Låg" : status === "warn" ? "Precis" : "OK"}</span>
+          </div>
+          <div class="shift-list">
+            <div class="shift-pill ${outsideSummer ? "warn" : status}">
+              <span class="shift-name">Totalt</span>
+              <span class="shift-count">${outsideSummer ? "Utanför sommarperiod" : `${totalPresent} i tjänst`}</span>
+              <span>${totalMin}</span>
+            </div>
+            ${outsideSummer ? "" : visibleRows.map((row) => `
+              <div class="shift-pill ${row.staffing.status}">
+                <span class="shift-name">${row.group.replace("Grupp ", "G")} v${row.staffing.scheduleEntry?.scheduleWeek || "-"}</span>
+                <span class="shift-count">${row.shift} · ${row.staffing.present.length} i tjänst</span>
+                <span>${row.staffing.min}</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        calendar.appendChild(cell);
+      }
+
+      renderMetrics();
+    }
+
+    function renderMetrics() {
+      const people = filteredPeople();
+      let absenceDays = 0;
+      let riskDays = 0;
+      let lowest = Infinity;
+      const monthStart = isoDate(new Date(viewYear, viewMonth, 1));
+      const monthEnd = isoDate(new Date(viewYear, viewMonth + 1, 0));
+
+      eachDate(monthStart, monthEnd, (date, dateObject) => {
+        if (!isSummerWeek(dateObject)) return;
+        const rows = staffingGroupsForView(date);
+        if (!rows.some((row) => row.staffing.scheduleEntry)) return;
+        const presentTotal = rows.reduce((sum, row) => sum + row.staffing.present.length, 0);
+        lowest = Math.min(lowest, presentTotal);
+        if (rows.some((row) => row.staffing.status !== "ok")) riskDays += 1;
+      });
+
+      state.absences.forEach((absence) => {
+          const person = state.people.find((item) => item.id === absence.personId);
+          if (!person || !people.some((item) => item.id === person.id)) return;
+        eachDate(absence.start, absence.end, (date) => {
+          if (date >= monthStart && date <= monthEnd && isSummerWeek(parseIso(date))) absenceDays += 1;
+        });
+      });
+
+      $("metricPeople").textContent = people.length;
+      $("metricAbsenceDays").textContent = absenceDays;
+      $("metricRiskDays").textContent = riskDays;
+      $("metricLowest").textContent = Number.isFinite(lowest) ? lowest : 0;
+    }
+
+    function renderDetails() {
+      $("selectedTitle").textContent = dateLabel(selectedDate);
+      if (!isSummerWeek(parseIso(selectedDate))) {
+        $("dayDetails").innerHTML = `<div class="empty">Den här dagen ligger utanför sommarschemat, vecka ${SUMMER_START_WEEK}-${SUMMER_END_WEEK}.</div>`;
+        return;
+      }
+      const rows = staffingGroupsForView(selectedDate);
+      const details = $("dayDetails");
+      details.innerHTML = "";
+
+      rows.forEach(({ group, shift, staffing }) => {
+        const section = document.createElement("div");
+        section.className = "panel light";
+        section.style.boxShadow = "none";
+        const absentNames = staffing.absences.map((absence) => {
+          const person = state.people.find((item) => item.id === absence.personId);
+          return { name: person?.name || "Okänd", type: absence.type };
+        });
+
+        section.innerHTML = `
+          <div class="panel-title">
+            <h3>${group} · ${shift}</h3>
+            <span class="status ${staffing.status}">${staffing.present.length}/${staffing.min}</span>
+          </div>
+          <div>
+            <strong>I tjänst</strong>
+            <div>${staffing.present.length ? staffing.present.map((person) => `<span class="person-chip">${person.name}</span>`).join("") : `<div class="empty">Ingen registrerad i tjänst.</div>`}</div>
+          </div>
+          <div style="margin-top: 10px;">
+            <strong>Frånvarande</strong>
+            <div>${absentNames.length ? absentNames.map((person) => `<span class="person-chip absence-chip">${person.name} · ${person.type}</span>`).join("") : `<div class="empty">Ingen frånvaro denna dag.</div>`}</div>
+          </div>
+        `;
+        details.appendChild(section);
+      });
+    }
+
+    function renderRequirements() {
+      const table = $("requirementTable");
+      table.innerHTML = "";
+      GROUPS.forEach((group) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${group}</td>
+          <td>${state.requirements[requirementKey(group)] ?? 0}</td>
+        `;
+        table.appendChild(tr);
+      });
+    }
+
+    function renderPeopleTable() {
+      const people = filteredPeople();
+      $("peopleTab").innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Namn</th>
+              <th>Grupp</th>
+              <th>Roll</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${people.map((person) => `
+              <tr>
+                <td>${person.name}</td>
+                <td>${person.group}</td>
+                <td>${person.role || "-"}</td>
+                <td><button class="mini-button" title="Ta bort person" data-remove-person="${person.id}">×</button></td>
+              </tr>
+            `).join("") || `<tr><td colspan="4">Ingen personal i vald vy.</td></tr>`}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderAbsencesTable() {
+      const people = filteredPeople();
+      const peopleIds = new Set(people.map((person) => person.id));
+      const absences = state.absences.filter((absence) => peopleIds.has(absence.personId));
+      $("absencesTab").innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Person</th>
+              <th>Typ</th>
+              <th>Från</th>
+              <th>Till</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${absences.map((absence) => {
+              const person = state.people.find((item) => item.id === absence.personId);
+              return `
+                <tr>
+                  <td>${person?.name || "Okänd"}</td>
+                  <td>${absence.type}</td>
+                  <td>${absence.start}</td>
+                  <td>${absence.end}</td>
+                  <td><button class="mini-button" title="Ta bort frånvaro" data-remove-absence="${absence.id}">×</button></td>
+                </tr>
+              `;
+            }).join("") || `<tr><td colspan="5">Ingen frånvaro i vald vy.</td></tr>`}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function refreshPersonSelect() {
+      const select = $("absencePerson");
+      const current = select.value;
+      select.innerHTML = "";
+      state.people
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, "sv-SE"))
+        .forEach((person) => {
+          const option = document.createElement("option");
+          option.value = person.id;
+          option.textContent = `${person.name} · ${person.group}`;
+          select.appendChild(option);
+        });
+      if (current) select.value = current;
+    }
+
+    function renderAll() {
+      refreshPersonSelect();
+      renderCalendar();
+      renderDetails();
+      renderRequirements();
+      renderPeopleTable();
+      renderAbsencesTable();
+    }
+
+    function setupControls() {
+      fillSelect($("personGroup"), GROUPS, GROUPS[0]);
+      fillSelect($("requirementGroup"), GROUPS, GROUPS[0]);
+      fillSelect($("groupFilter"), GROUPS, "Alla", "Alla grupper");
+
+      const years = Array.from({ length: 7 }, (_, index) => String(today.getFullYear() - 1 + index));
+      fillSelect($("yearSelect"), years, String(viewYear));
+      fillSelect($("monthSelect"), MONTHS, MONTHS[viewMonth]);
+
+      $("yearSelect").addEventListener("change", (event) => {
+        viewYear = Number(event.target.value);
+        renderAll();
+      });
+      $("monthSelect").addEventListener("change", (event) => {
+        viewMonth = MONTHS.indexOf(event.target.value);
+        renderAll();
+      });
+      $("groupFilter").addEventListener("change", renderAll);
+      $("prevMonth").addEventListener("click", () => {
+        viewMonth -= 1;
+        if (viewMonth < 0) {
+          viewMonth = 11;
+          viewYear -= 1;
+          $("yearSelect").value = String(viewYear);
+        }
+        $("monthSelect").value = MONTHS[viewMonth];
+        renderAll();
+      });
+      $("nextMonth").addEventListener("click", () => {
+        viewMonth += 1;
+        if (viewMonth > 11) {
+          viewMonth = 0;
+          viewYear += 1;
+          $("yearSelect").value = String(viewYear);
+        }
+        $("monthSelect").value = MONTHS[viewMonth];
+        renderAll();
+      });
+
+      $("personForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        state.people.push({
+          id: crypto.randomUUID(),
+          name: $("personName").value.trim(),
+          group: $("personGroup").value,
+          role: $("personRole").value.trim()
+        });
+        event.target.reset();
+        $("personGroup").value = GROUPS[0];
+        saveState();
+        renderAll();
+      });
+
+      $("absenceForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const start = $("absenceStart").value;
+        const end = $("absenceEnd").value;
+        if (end < start) {
+          alert("Till-datum kan inte vara före från-datum.");
+          return;
+        }
+        state.absences.push({
+          id: crypto.randomUUID(),
+          personId: $("absencePerson").value,
+          type: $("absenceType").value,
+          start,
+          end
+        });
+        saveState();
+        renderAll();
+      });
+
+      $("requirementForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const group = $("requirementGroup").value;
+        state.requirements[requirementKey(group)] = Number($("requirementMin").value);
+        saveState();
+        renderAll();
+      });
+
+      $("requirementGroup").addEventListener("change", updateRequirementInput);
+
+      document.addEventListener("click", (event) => {
+        const personButton = event.target.closest("[data-remove-person]");
+        if (personButton) {
+          const id = personButton.dataset.removePerson;
+          state.people = state.people.filter((person) => person.id !== id);
+          state.absences = state.absences.filter((absence) => absence.personId !== id);
+          saveState();
+          renderAll();
+        }
+
+        const absenceButton = event.target.closest("[data-remove-absence]");
+        if (absenceButton) {
+          const id = absenceButton.dataset.removeAbsence;
+          state.absences = state.absences.filter((absence) => absence.id !== id);
+          saveState();
+          renderAll();
+        }
+      });
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+          tab.classList.add("active");
+          $("peopleTab").classList.toggle("hidden", tab.dataset.tab !== "people");
+          $("absencesTab").classList.toggle("hidden", tab.dataset.tab !== "absences");
+        });
+      });
+
+      $("exportButton").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `semesterplanering-${viewYear}.json`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+
+      $("importFile").addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        let data;
+        try {
+          data = JSON.parse(await file.text());
+        } catch {
+          alert("Filen kunde inte läsas. Kontrollera att det är en giltig JSON-fil.");
+          event.target.value = "";
+          return;
+        }
+        state.people = Array.isArray(data.people) ? data.people.map((person) => ({
+          ...person,
+          role: normalizeRole(person.role)
+        })) : [];
+        state.absences = Array.isArray(data.absences) ? data.absences : [];
+        state.requirements = data.requirements || {};
+        saveState();
+        renderAll();
+      });
+
+      $("resetButton").addEventListener("click", () => {
+        if (!confirm("Vill du återställa demo-data?")) return;
+        const fresh = seedState();
+        state.people = fresh.people;
+        state.absences = fresh.absences;
+        state.requirements = fresh.requirements;
+        saveState();
+        renderAll();
+      });
+    }
+
+    function updateRequirementInput() {
+      const key = requirementKey($("requirementGroup").value);
+      $("requirementMin").value = state.requirements[key] ?? 0;
+    }
+
+    setupControls();
+    $("absenceStart").value = selectedDate;
+    $("absenceEnd").value = selectedDate;
+    updateRequirementInput();
+    renderAll();
+  </script>
+</body>
+</html>
