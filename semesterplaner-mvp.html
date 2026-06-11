@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Semesterplanering</title>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <style>
     :root {
@@ -1938,6 +1939,13 @@
 
     (async function initApp() {
       setSyncStatus("saving");
+      try {
+        await firebase.auth().signInAnonymously();
+      } catch (e) {
+        setSyncStatus("error");
+        console.error("Inloggningsfel:", e);
+        return;
+      }
       try {
         const doc = await STATE_DOC.get();
         if (!doc.exists) {
