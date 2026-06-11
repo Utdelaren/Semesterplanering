@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Semesterplanering</title>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #f4f6f5;
@@ -330,6 +332,15 @@
       padding: 4px 0;
     }
 
+    .sync-status {
+      font-size: 11px; color: var(--muted); display: flex; align-items: center;
+      gap: 5px; opacity: 0; transition: opacity 0.4s;
+    }
+    .sync-status.visible { opacity: 1; }
+    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+    .sync-dot.error { background: #ef4444; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .holiday-label {
       font-size: 10px;
       font-weight: 750;
@@ -691,6 +702,10 @@
           <h1>Semesterplanering</h1>
           <p>Grupp 7-9 · tvåskift · sommar</p>
         </div>
+        <div id="syncStatus" class="sync-status" style="margin-left:auto">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncText">Ansluter...</span>
+        </div>
       </div>
 
       <section class="panel">
@@ -939,10 +954,19 @@
       "Januari", "Februari", "Mars", "April", "Maj", "Juni",
       "Juli", "Augusti", "September", "Oktober", "November", "December"
     ];
-    const STORAGE_KEY = "semesterplanering-mvp-v2";
+    firebase.initializeApp({
+      apiKey: "AIzaSyAlAGQ1AykIoe4mDbotY3pzt_jrgIjmRmI",
+      authDomain: "semesterplanering.firebaseapp.com",
+      projectId: "semesterplanering",
+      storageBucket: "semesterplanering.firebasestorage.app",
+      messagingSenderId: "950166237251",
+      appId: "1:950166237251:web:ecd2bfea2c2dfe65de24f6"
+    });
+    const db = firebase.firestore();
+    const STATE_DOC = db.collection("app").doc("state");
 
     const today = new Date();
-    const state = loadState();
+    let state = seedState();
     let viewYear = SCHEDULE_BASE_YEAR;
     let viewMonth = 5;
     let selectedDate = `${SCHEDULE_BASE_YEAR}-06-01`;
@@ -959,9 +983,10 @@
       return { people: [], absences: [], requirements };
     }
 
-    function loadState() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return seedState();
+    function migrateFromLocalStorage() {
+      const OLD_KEY = "semesterplanering-mvp-v2";
+      const saved = localStorage.getItem(OLD_KEY);
+      if (!saved) return null;
       try {
         const parsed = JSON.parse(saved);
         const people = Array.isArray(parsed.people) ? parsed.people
@@ -982,7 +1007,7 @@
           )
         };
       } catch {
-        return seedState();
+        return null;
       }
     }
 
@@ -990,8 +1015,22 @@
       return role === "Gruppchef" || role === "Samordnare" ? "Gruppchef" : "Spanare";
     }
 
+    function setSyncStatus(status) {
+      const dot = document.getElementById("syncDot");
+      const text = document.getElementById("syncText");
+      const wrap = document.getElementById("syncStatus");
+      if (!dot) return;
+      dot.className = "sync-dot" + (status === "saving" ? " syncing" : status === "error" ? " error" : "");
+      text.textContent = status === "saving" ? "Sparar..." : status === "error" ? "Fel vid sparning" : "Synkroniserat";
+      wrap.classList.add("visible");
+      if (status === "ok") setTimeout(() => wrap.classList.remove("visible"), 2500);
+    }
+
     function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      setSyncStatus("saving");
+      STATE_DOC.set(state)
+        .then(() => setSyncStatus("ok"))
+        .catch(() => setSyncStatus("error"));
     }
 
     function requirementKey(group) {
@@ -1896,7 +1935,39 @@
     $("absenceStart").value = selectedDate;
     $("absenceEnd").value = selectedDate;
     updateRequirementInput();
-    renderAll();
+
+    (async function initApp() {
+      setSyncStatus("saving");
+      try {
+        const doc = await STATE_DOC.get();
+        if (!doc.exists) {
+          const migrated = migrateFromLocalStorage();
+          if (migrated) {
+            Object.assign(state, migrated);
+            await STATE_DOC.set(state);
+          } else {
+            await STATE_DOC.set(state);
+          }
+        }
+      } catch (e) {
+        setSyncStatus("error");
+        console.error("Firebase-fel:", e);
+      }
+
+      STATE_DOC.onSnapshot(doc => {
+        if (doc.exists) {
+          const d = doc.data();
+          state.people = Array.isArray(d.people) ? d.people : [];
+          state.absences = Array.isArray(d.absences) ? d.absences : [];
+          state.requirements = d.requirements || {};
+        }
+        renderAll();
+        setSyncStatus("ok");
+      }, err => {
+        setSyncStatus("error");
+        console.error("Sync-fel:", err);
+      });
+    })();
   </script>
 
 </body>
