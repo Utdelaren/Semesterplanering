@@ -455,6 +455,25 @@
       color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;
       padding: 6px 10px; border-top: 2px solid var(--line);
     }
+    .summary-person-row { cursor: pointer; }
+    .summary-person-row:hover td { background: #f0f4f2; }
+    .summary-person-row.is-expanded td { background: #eef4ff; }
+    .person-chevron { font-size: 9px; color: var(--muted); margin-left: 4px; vertical-align: middle; }
+    .person-detail-row td { padding: 0; }
+    .person-detail-inner {
+      padding: 10px 14px 14px 22px;
+      background: #f7faff;
+      border-bottom: 2px solid var(--line);
+      border-left: 3px solid #93c5fd;
+    }
+    .person-detail-inner table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .person-detail-inner th {
+      font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.04em; padding: 2px 8px 6px; text-align: left; border-bottom: 1px solid var(--line);
+    }
+    .person-detail-inner td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
+    .person-detail-inner tr:last-child td { border-bottom: none; }
+    .person-detail-empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
     .mini-button {
       width: 28px;
       height: 28px;
@@ -928,6 +947,7 @@
     let viewMonth = 5;
     let selectedDate = `${SCHEDULE_BASE_YEAR}-06-01`;
     let editingAbsenceId = null;
+    let expandedPersonId = null;
 
     const $ = (id) => document.getElementById(id);
 
@@ -1564,12 +1584,41 @@
       const grouped = {};
       people.forEach(p => { (grouped[p.group] = grouped[p.group] || []).push(p); });
 
-      const bodyRows = Object.entries(grouped).flatMap(([group, members]) => [
-        `<tr class="group-header-row"><td colspan="${TYPES.length + 3}">${group}</td></tr>`,
-        ...members.map(person => {
-          const total = countDays(person.id, null);
+      const colspan = TYPES.length + 3;
+
+      function personDetailHtml(person) {
+        const absences = state.absences
+          .filter(a => a.personId === person.id)
+          .sort((a, b) => a.start.localeCompare(b.start));
+        if (!absences.length) {
+          return `<div class="person-detail-empty">Ingen frånvaro registrerad.</div>`;
+        }
+        const rows = absences.map(a => {
+          const days = Math.round((new Date(a.end) - new Date(a.start)) / 86400000) + 1;
+          const w1 = isoWeek(new Date(a.start));
+          const w2 = isoWeek(new Date(a.end));
+          const weekStr = w1 === w2 ? `v${w1}` : `v${w1}–${w2}`;
           return `<tr>
-            <td>${person.name}</td>
+            <td><span class="abs-tag type-${absenceTypeSlug(a.type)}">${a.type}</span></td>
+            <td>${a.start}</td>
+            <td>${a.end}</td>
+            <td>${weekStr}</td>
+            <td>${days} dag${days !== 1 ? "ar" : ""}</td>
+          </tr>`;
+        }).join("");
+        return `<table>
+          <thead><tr><th>Typ</th><th>Från</th><th>Till</th><th>Vecka</th><th>Dagar</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+      }
+
+      const bodyRows = Object.entries(grouped).flatMap(([group, members]) => [
+        `<tr class="group-header-row"><td colspan="${colspan}">${group}</td></tr>`,
+        ...members.flatMap(person => {
+          const total = countDays(person.id, null);
+          const isExpanded = expandedPersonId === person.id;
+          const personRow = `<tr class="summary-person-row${isExpanded ? " is-expanded" : ""}" data-expand-person="${person.id}">
+            <td>${person.name}<span class="person-chevron">${isExpanded ? "▲" : "▼"}</span></td>
             <td>${person.role || "–"}</td>
             ${TYPES.map(type => {
               const d = countDays(person.id, type);
@@ -1577,6 +1626,11 @@
             }).join("")}
             <td class="text-center"><strong>${total > 0 ? total : "–"}</strong></td>
           </tr>`;
+          if (!isExpanded) return [personRow];
+          const detailRow = `<tr class="person-detail-row">
+            <td colspan="${colspan}"><div class="person-detail-inner">${personDetailHtml(person)}</div></td>
+          </tr>`;
+          return [personRow, detailRow];
         })
       ]);
 
@@ -1720,6 +1774,14 @@
           if (editingAbsenceId === id) resetAbsenceForm();
           saveState();
           renderAll();
+        }
+
+        const expandPersonRow = event.target.closest("[data-expand-person]");
+        if (expandPersonRow) {
+          const id = expandPersonRow.dataset.expandPerson;
+          expandedPersonId = expandedPersonId === id ? null : id;
+          renderSummaryTable();
+          return;
         }
 
         const editAbsenceButton = event.target.closest("[data-edit-absence]");
