@@ -679,6 +679,30 @@
       #printCalendar { display: none; }
       body.printing #printCalendar { display: grid !important; }
     }
+    #pinScreen {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    #pinScreen.hidden { display: none; }
+    .pin-box {
+      background: #fff; border-radius: 18px; padding: 36px 32px;
+      width: 300px; box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      display: flex; flex-direction: column; align-items: center; gap: 18px;
+    }
+    .pin-brand { width: 48px; height: 48px; border-radius: 14px; background: var(--green); display: grid; place-items: center; font-size: 20px; font-weight: 900; color: #fff; }
+    .pin-box h2 { margin: 0; font-size: 17px; font-weight: 800; }
+    .pin-box p { margin: 0; font-size: 13px; color: var(--muted); text-align: center; }
+    #pinInput {
+      width: 100%; text-align: center; letter-spacing: 0.3em;
+      font-size: 24px; font-weight: 700; padding: 10px;
+      border: 2px solid var(--line); border-radius: 10px; outline: none;
+    }
+    #pinInput:focus { border-color: var(--green); }
+    #pinInput.shake { animation: shake 0.4s; border-color: var(--red); }
+    #pinError { color: var(--red); font-size: 13px; font-weight: 600; min-height: 18px; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
+    }
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.35);
       display: flex; align-items: center; justify-content: center; z-index: 999;
@@ -695,6 +719,16 @@
   </style>
 </head>
 <body>
+  <div id="pinScreen">
+    <div class="pin-box">
+      <div class="pin-brand">SP</div>
+      <h2>Semesterplanering</h2>
+      <p>Ange PIN-koden för att fortsätta</p>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off">
+      <div id="pinError"></div>
+      <button class="button" style="width:100%" onclick="checkPin()">Logga in</button>
+    </div>
+  </div>
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
@@ -904,6 +938,38 @@
   </div>
 
   <script>
+    const APP_PIN = "2027";
+    const PIN_KEY = "sp-pin-ok";
+
+    function checkPin() {
+      const val = document.getElementById("pinInput").value;
+      const err = document.getElementById("pinError");
+      const inp = document.getElementById("pinInput");
+      if (val === APP_PIN) {
+        localStorage.setItem(PIN_KEY, "1");
+        document.getElementById("pinScreen").classList.add("hidden");
+        err.textContent = "";
+      } else {
+        err.textContent = "Fel PIN-kod, försök igen.";
+        inp.value = "";
+        inp.classList.remove("shake");
+        void inp.offsetWidth;
+        inp.classList.add("shake");
+        inp.focus();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem(PIN_KEY) === "1") {
+        document.getElementById("pinScreen").classList.add("hidden");
+      } else {
+        document.getElementById("pinInput").focus();
+      }
+      document.getElementById("pinInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") checkPin();
+      });
+    });
+
     const GROUPS = ["Grupp 7", "Grupp 8", "Grupp 9"];
     const SUMMER_START_WEEK = 23;
     const SUMMER_END_WEEK = 36;
